@@ -7,13 +7,16 @@ from tkinter import CENTER
 from tkinter import *
 import time
 from playsound import playsound
+import math
 import pygame
 
 class MyLittleVideoGame:
     def __init__(self, window, title, backgroundfilenamePNG):
-        window.title(title)
+        self.title=title
         self.font=("Courier",21,"bold")
         self.window=window
+        #self.window.title(self.title)
+        self.window.winfo_toplevel().title(self.title)
         self.window.resizable(False, False)
         self.score=0
         self.lives=3
@@ -27,6 +30,8 @@ class MyLittleVideoGame:
         self.background = PhotoImage(file=backgroundfilenamePNG)
         self.width=self.background.width()
         self.height=self.background.height()
+        self.messageXPosition=self.width//2
+        self.messageYPosition=self.height//2
         self.canvas=Canvas(window, width=self.width, height=self.height)
         self.backgroundPNG = self.canvas.create_image(1,0, image=self.background,anchor=NW)#,tag="background")
         self.labelScore.grid(row=0, column=0)
@@ -51,10 +56,11 @@ class MyLittleVideoGame:
     def getWidth(self): # returns width of canvas
         return(self.width)
 
-    #def getCanvas(self):
-    #    return(self.canvas)
+    def setTitle(self,title):
+        self.title=title
+        self.window.winfo_toplevel().title(self.title)
 
-    def backgroundDelete(self): #removes background and leaves blank canvas
+    def _backgroundDelete(self): #removes background and leaves blank canvas
         self.canvas.delete(self.backgroundPNG)
         self.window.update()
 
@@ -68,7 +74,7 @@ class MyLittleVideoGame:
 
     def backgroundChange(self,fileName):# changes background by deleting background and loading one in.
         self.fileName=fileName
-        self.backgroundDelete()
+        self._backgroundDelete()
         self.backgroundLoad(self.fileName)
         
     #************* get/set scores etc ************
@@ -106,18 +112,23 @@ class MyLittleVideoGame:
 
     #play background music while game is playing.  Supply mp3 filename, and volume which is a float (0.0to1.0)ex .7
     def backgroundMusicPlay(self,backgroundMusicfileName,volumeFloat_0to1):
-        self.backgroundMusicFileName=backgroundMusicfileName
-        self.volumeFloat_0to1=volumeFloat_0to1
-        pygame.mixer.init()
-        pygame.mixer.music.load(self.backgroundMusicFileName)
-        pygame.mixer.music.set_volume(volumeFloat_0to1)
-        pygame.mixer.music.play(-1,0.0)
+        try:
+            self.backgroundMusicFileName=backgroundMusicfileName
+            self.volumeFloat_0to1=volumeFloat_0to1
+            pygame.mixer.init()
+            pygame.mixer.music.load(self.backgroundMusicFileName)
+            pygame.mixer.music.set_volume(volumeFloat_0to1)
+            pygame.mixer.music.play(-1,0.0)
+        except:
+            print ("backgroundMusicPlay failed")
 
     #stop background music, maybe between switching levels or similar
     def backgroundMusicStop(self):
-        pygame.mixer.music.stop()
-        pygame.mixer.music.unload()
-
+        try:
+            pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
+        except:
+            print ("backgroundMusicStop failed")
     #this is not for playing background music, this is for playing short things like an explosion or firing a shot
     def playSoundandKeepGoing(self,fileName):
         self.fileName=fileName
@@ -136,8 +147,18 @@ class MyLittleVideoGame:
     def showMessage(self,text): # this places a text message in the middle of the screen, remove before showing another
         self.text=text
         self.window.update()
-        self.message = self.canvas.create_text(self.width//2,self.height//2,text=self.text,font=self.font)
+        self.messageXPosition=self.width//2
+        self.messageYPosition=self.height//2
+        self.message = self.canvas.create_text(self.messageXPosition,self.messageYPosition,text=self.text,font=self.font)
         self.messageOnScreen=True
+        self.window.update()
+        
+    def moveMessage(self,Xmove,Ymove):
+        self.moveMessageX=Xmove
+        self.moveMessageY=Ymove
+        self.messageXPosition=self.messageXPosition+self.moveMessageX
+        self.messageYPosition=self.messageYPosition+self.moveMessageY
+        self.canvas.move(self.message,self.moveMessageX,self.moveMessageY)
         self.window.update()
 
     def isMessageOnScreen(self):
@@ -149,10 +170,9 @@ class MyLittleVideoGame:
         self.messageOnScreen=False
         self.window.update()
 
-
     """
     This is used when there is a game pause.  Like press Y to continue for example.  Background music
-    will play, but keypress must happend for it to break out of loop and continue
+    will play, but keypress must happen for it to break out of loop and continue
     """
     def waitForKeyPress(self):# game will pause until a keypress occurs, also returns the keypress
         print("waiting for KeyPress")
@@ -182,8 +202,8 @@ class MyLittleVideoGame:
     the main game loop is running to get keystrokes.  Like if j is pressed move left and k is pressed move
     right.  The main difference between using getKey instead of the binding of controls below is there
     can only be one return.  So if you press up and right at the same time, there will not be diaganol
-    movement.  In other words only one key can be returned at at time.  The standard controls are disbale
-    in case they have been bound by using the controls.  Also the pause button is turned of if you are
+    movement.  In other words only one key can be returned at at time.  The standard controls are disabled
+    in case they have been bound by using the controls.  Also the pause button is turned off if you are
     using this method that way p can be accessed as a key.  If you need to keep pause on places
     incorporate the getPausePress method in the main game loop to keep it on.  place it after getKey
     method in the main game loop.
@@ -195,9 +215,25 @@ class MyLittleVideoGame:
         self.window.unbind("<Up>")
         self.window.unbind("<Down>")
         self.window.unbind("<p>")
-        self.window.bind("<KeyPress>",lambda e: self._keyTriggered(e))
         self.window.bind("<KeyRelease>", lambda e: self._keyReleased(e))
+        self.window.bind("<KeyPress>",lambda e: self._keyTriggered(e))
+
+        print("returning self.key",self.key)
         return(self.key)
+
+    def _unBindControls(self):
+        self.window.unbind("<space>")
+        self.window.unbind("<Left>")
+        self.window.unbind("<Right>")
+        self.window.unbind("<Up>")
+        self.window.unbind("<Down>")
+        self.window.unbind("<p>")
+        #self.window.unbind("<KeyPress>")
+        #self.window.unbind("<KeyRelease>")
+
+
+    def destroyAllObjects(self):
+        self.canvas.delete("all")
 
     # these 2 methods are used by they getKey method
     def _keyTriggered(self,e):
@@ -313,6 +349,7 @@ class MyLittleVideoGame:
         print(e.keysym)
 
     def exitProgram(self):
+        self.backgroundMusicStop()
         self.window.destroy()    
 
 class LittleObjects:
@@ -327,6 +364,7 @@ class LittleObjects:
         self.objectExists=True
         self.objectImagePNG = PhotoImage(file=imageFilePNG)
         self.littleObject = self.canvas.create_image(self.x,self.y, image=self.objectImagePNG,anchor=CENTER)
+        self.window.update()
 
     def moveObject(self,movex,movey):
         self.movex=movex
@@ -344,9 +382,87 @@ class LittleObjects:
     def getXPosition(self):
         return(self.x)
 
+    def setXPosition(self,newXPosition):
+        self.newXPosition=newXPosition
+        self.moveObject(self.newXPosition-self.x,0)
+        self.window.update()
+
     def getYPosition(self):
         return(self.y)
 
+    def setYPosition(self,newYPosition):
+        self.newYPosition=newYPosition
+        self.moveObject(0,self.newYPosition-self.y)
+        self.window.update()
+
     def getObjectExists(self):#should change to ObjectExists
         return(self.objectExists)
+
+class RotatingCannon:
+    def __init__(self,game,radAngle,launcherLength,launcherWidth,launcherXLocation,launcherYLocation):
+        self.radAngle=radAngle
+        self.launcherLength=launcherLength
+        self.launcherWidth=launcherWidth
+        self.canvas=game.canvas
+        self.window=game.window
+        self.height=game.getHeight()
+        self.width=game.getWidth()
+        self.launcherXLocation=launcherXLocation
+        self.launcherYLocation=launcherYLocation
+
+        #make 2 circles around the base of the cannon
+        self.base1=self.canvas.create_oval(self.launcherXLocation-self.launcherLength/2,self.launcherYLocation-self.launcherLength/2,self.launcherXLocation+self.launcherLength/2,self.launcherYLocation+self.launcherLength/2, width=self.launcherWidth/2, fill="dark grey")
+        self.base2=self.canvas.create_oval(self.launcherXLocation-self.launcherWidth,self.launcherYLocation-self.launcherWidth,self.launcherXLocation+self.launcherWidth,self.launcherYLocation+self.launcherWidth, fill="black")
+        #make a line which is a cannon
+        self.cannon=self.canvas.create_line(self.launcherXLocation,self.launcherYLocation,self.launcherXLocation+self.launcherLength*math.cos(radAngle), self.launcherYLocation-self.launcherLength*math.sin(radAngle)+self.launcherWidth, width=self.launcherWidth)
+        
+        #take note of the location of the end of the cannon, which is where object wouldbe launched on
+        self.cannonEndXPosition=self.launcherXLocation+self.launcherLength*math.cos(radAngle)
+        self.cannonEndYPosition=self.launcherYLocation-self.launcherLength*math.sin(radAngle)#+self.launcherWidth
+        game.window.update()
+
+    def rotate(self,moveRadAngle):
+        self.moveRandAngle=moveRadAngle
+        self.radAngle=self.radAngle+self.moveRandAngle
+        #delete the cannon
+        self.canvas.delete(self.cannon)
+        #create a cannon with new angle
+        self.createCannon(self.radAngle,self.launcherLength,self.launcherWidth)
+        self.window.update()
+
+    def createCannon(self,radAngle,launcherLength,launcherWidth):
+        self.radAngle=radAngle
+        self.launcherLength=launcherLength
+        self.launcherWidth=launcherWidth
+        #self.launcherXLocation=self.width//2
+        self.cannon = self.canvas.create_line(self.launcherXLocation,self.launcherYLocation,self.launcherXLocation+self.launcherLength*math.cos(radAngle), self.launcherYLocation-self.launcherLength*math.sin(radAngle)+self.launcherWidth, width=self.launcherWidth)
+        self.cannonEndXPosition=self.launcherXLocation+self.launcherLength*math.cos(radAngle)
+        self.cannonEndYPosition=self.launcherYLocation-self.launcherLength*math.sin(radAngle)#+self.launcherWidth
+        self.window.update()
+
+    def getCannonEndXPosition(self):
+        return(self.cannonEndXPosition)
+
+    def getCannonEndYPosition(self):
+        return(self.cannonEndYPosition)
+
+    def getRadAngle(self):
+        return(self.radAngle)
+
+    def setRadAngle(self,radAngle):
+        self.radAngle=radAngle
+
+    def getLauncherLength(self):
+        return(self.launcherLength)
+    
+    def getLauncherXLocation(self):
+        return(self.launcherXLocation)
+
+    def getLauncherWidth(self):
+        return(self.launcherWidth)
+
+    def destroyAll(self):
+        self.canvas.delete(self.cannon)
+        self.canvas.delete(self.base1)
+        self.canvas.delete(self.base2)
     
