@@ -1,3 +1,6 @@
+# MyLittleVideoGame class
+# for making simple classic 2d video games
+
 from tkinter import Tk
 from tkinter import Label
 from tkinter import PhotoImage
@@ -27,13 +30,22 @@ class MyLittleVideoGame:
         self.labelLives = Label (window, text="LIVES: "+str(self.lives),font=self.font)
         self.labelLevel = Label (window, text="LEVEL: "+str(self.level),font=self.font)
         self.labelOther = Label (window, text=self.other,font=self.font)
-        self.background = PhotoImage(file=backgroundfilenamePNG)
-        self.width=self.background.width()
-        self.height=self.background.height()
+        try:
+            self.background = PhotoImage(file=backgroundfilenamePNG)
+            self.width=self.background.width()
+            self.height=self.background.height()
+        except:
+            self.width=600
+            self.height=600
+            print("There was a problem loading the background in the class constructor.")
         self.messageXPosition=self.width//2
         self.messageYPosition=self.height//2
         self.canvas=Canvas(window, width=self.width, height=self.height)
-        self.backgroundPNG = self.canvas.create_image(1,0, image=self.background,anchor=NW)#,tag="background")
+        try:
+            self.backgroundPNG = self.canvas.create_image(1,0, image=self.background,anchor=NW)#,tag="background")
+            print("There was a placing the background on the canvas in the class constructor.")
+        except:
+            pass
         self.labelScore.grid(row=0, column=0)
         self.labelLevel.grid(row=0,column=1)
         self.labelOther.grid(row=0, column=2)
@@ -61,16 +73,22 @@ class MyLittleVideoGame:
         self.window.winfo_toplevel().title(self.title)
 
     def _backgroundDelete(self): #removes background and leaves blank canvas
-        self.canvas.delete(self.backgroundPNG)
-        self.window.update()
-
+        try:
+            self.canvas.delete(self.backgroundPNG)
+            self.window.update()
+        except:
+            print("There was a problem deleting the background image in the _backgroundDelete method")
+            
     def backgroundLoad(self,fileName): #loads a background image file, sets the canvas to image width, loads image
-        self.background = PhotoImage(file=fileName)
-        self.width=self.background.width()
-        self.height=self.background.height()
-        self.canvas.config(width=self.width, height=self.height)
-        self.backgroundPNG = self.canvas.create_image(1,0, image=self.background,anchor=NW)
-        self.canvas.tag_lower(self.backgroundPNG,"all")
+        try:
+            self.background = PhotoImage(file=fileName)
+            self.width=self.background.width()
+            self.height=self.background.height()
+            self.canvas.config(width=self.width, height=self.height)
+            self.backgroundPNG = self.canvas.create_image(1,0, image=self.background,anchor=NW)
+            self.canvas.tag_lower(self.backgroundPNG,"all")
+        except:
+            print("There was a problem loading the background in the backgroundLoad method.")
 
     def backgroundChange(self,fileName):# changes background by deleting background and loading one in.
         self.fileName=fileName
@@ -196,7 +214,6 @@ class MyLittleVideoGame:
         print(e.keysym)
         self.keyPress=e.keysym
 
-
     """
     This is used not to stop the program and wait on a keypress, but this can be used to while
     the main game loop is running to get keystrokes.  Like if j is pressed move left and k is pressed move
@@ -251,7 +268,6 @@ class MyLittleVideoGame:
         self.timeInSeconds=timeInSeconds
         time.sleep(self.timeInSeconds)
         self.window.update()
-
 
     """
     These are standard controls.  The left key, right key, up key down key, space key, pause p, and esc
@@ -398,6 +414,59 @@ class LittleObjects:
     def getObjectExists(self):#should change to ObjectExists
         return(self.objectExists)
 
+class LittleCharacter:
+    def __init__(self,game,x,y,color,font,character,size,weight):
+        self.window=game.window
+        self.canvas=game.canvas
+        self.x=x
+        self.y=y
+        self.movex=0
+        self.movey=0
+        self.character=character
+        self.color=color
+        self.font=font
+        self.size=size
+        self.weight=weight
+        self.fontString=(font,size,weight)
+        self.objectExists=True
+        self.littleCharacter = self.canvas.create_text(self.x,self.y,fill=self.color,font=self.fontString,text=self.character)
+        self.window.update()
+
+    def moveObject(self,movex,movey):
+        self.movex=movex
+        self.movey=movey
+        self.x=self.x+self.movex
+        self.y=self.y+self.movey
+        self.canvas.move(self.littleCharacter,self.movex,self.movey)
+        self.window.update()
+
+    def destroy(self):
+        self.canvas.delete(self.littleCharacter)
+        self.objectExists=False
+        self.window.update()
+
+    def getXPosition(self):
+        return(self.x)
+
+    def setXPosition(self,newXPosition):
+        self.newXPosition=newXPosition
+        self.moveObject(self.newXPosition-self.x,0)
+        self.window.update()
+
+    def getYPosition(self):
+        return(self.y)
+
+    def setYPosition(self,newYPosition):
+        self.newYPosition=newYPosition
+        self.moveObject(0,self.newYPosition-self.y)
+        self.window.update()
+
+    def getSize(self):
+        return(self.size)
+
+    def getObjectExists(self):#should change to ObjectExists
+        return(self.objectExists)       
+        
 class RotatingCannon:
     def __init__(self,game,radAngle,launcherLength,launcherWidth,launcherXLocation,launcherYLocation):
         self.radAngle=radAngle
@@ -414,9 +483,9 @@ class RotatingCannon:
         self.base1=self.canvas.create_oval(self.launcherXLocation-self.launcherLength/2,self.launcherYLocation-self.launcherLength/2,self.launcherXLocation+self.launcherLength/2,self.launcherYLocation+self.launcherLength/2, width=self.launcherWidth/2, fill="dark grey")
         self.base2=self.canvas.create_oval(self.launcherXLocation-self.launcherWidth,self.launcherYLocation-self.launcherWidth,self.launcherXLocation+self.launcherWidth,self.launcherYLocation+self.launcherWidth, fill="black")
         #make a line which is a cannon
-        self.cannon=self.canvas.create_line(self.launcherXLocation,self.launcherYLocation,self.launcherXLocation+self.launcherLength*math.cos(radAngle), self.launcherYLocation-self.launcherLength*math.sin(radAngle)+self.launcherWidth, width=self.launcherWidth)
+        self.cannon=self.canvas.create_line(self.launcherXLocation,self.launcherYLocation,self.launcherXLocation+self.launcherLength*math.cos(radAngle), self.launcherYLocation-self.launcherLength*math.sin(radAngle), width=self.launcherWidth)
         
-        #take note of the location of the end of the cannon, which is where object wouldbe launched on
+        #take note of the location of the end of the cannon, which is where object would be launched on
         self.cannonEndXPosition=self.launcherXLocation+self.launcherLength*math.cos(radAngle)
         self.cannonEndYPosition=self.launcherYLocation-self.launcherLength*math.sin(radAngle)#+self.launcherWidth
         game.window.update()
@@ -434,8 +503,7 @@ class RotatingCannon:
         self.radAngle=radAngle
         self.launcherLength=launcherLength
         self.launcherWidth=launcherWidth
-        #self.launcherXLocation=self.width//2
-        self.cannon = self.canvas.create_line(self.launcherXLocation,self.launcherYLocation,self.launcherXLocation+self.launcherLength*math.cos(radAngle), self.launcherYLocation-self.launcherLength*math.sin(radAngle)+self.launcherWidth, width=self.launcherWidth)
+        self.cannon = self.canvas.create_line(self.launcherXLocation,self.launcherYLocation,self.launcherXLocation+self.launcherLength*math.cos(radAngle), self.launcherYLocation-self.launcherLength*math.sin(radAngle), width=self.launcherWidth)
         self.cannonEndXPosition=self.launcherXLocation+self.launcherLength*math.cos(radAngle)
         self.cannonEndYPosition=self.launcherYLocation-self.launcherLength*math.sin(radAngle)#+self.launcherWidth
         self.window.update()
@@ -445,6 +513,12 @@ class RotatingCannon:
 
     def getCannonEndYPosition(self):
         return(self.cannonEndYPosition)
+
+    def getXPosition(self):
+        return self.launcherXLocation
+
+    def getYPosition(self):
+        return self.launcherYLocation
 
     def getRadAngle(self):
         return(self.radAngle)
@@ -465,4 +539,3 @@ class RotatingCannon:
         self.canvas.delete(self.cannon)
         self.canvas.delete(self.base1)
         self.canvas.delete(self.base2)
-    
