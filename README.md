@@ -6,8 +6,8 @@ some more source code as examples.  In the meantime, if you install to Windows w
 
 A main point of using these classes is to make a 2d video game, reminiscient of Atari 2600 or Commodore 64 very quickly.
 
-### I intend to combine all of my sound and image manipulation python libraries into this project with an example video game.  For now you can check out their source code separately at these projects `PreferredSoundPlayer` and `tkPhotoImageFunctions`.
+#### I intend to combine all of my sound and image manipulation python libraries into this project with an example video game.  For now you can check out their source code separately at these projects `PreferredSoundPlayer` and `tkPhotoImageFunctions`.
 
-### I wrote the soundplayers and imagefunctions because pygame and playsound modules were not truely cross-platform and did not work correctly when going from Windows to Linux.  These sound players and image manipulation functions may not be as robust.  However, at least they work.
+#### I wrote the soundplayers and imagefunctions because pygame and playsound modules were not truely cross-platform and did not work correctly when going from Windows to Linux.  These sound players and image manipulation functions may not be as robust.  However, at least they work.
 
 contact info: garydavenport73@gmail.com
