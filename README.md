@@ -1,6 +1,8 @@
 # my-little-video-game
 A vintage style video game class that is very basic and written in python.  This is my first try at using object oriented programming.
 
+<img src='screenshotmlvg.png'>
+
 I took a class in Python at a local community college, watched the series "Tkinter Course - Create Graphic User Interfaces in Python Tutorial" from Codemy.com.  I also
 read the book.  I also read the book Python Programming: An Introduction to Computer Science by John Zelle.  This is my first try at using Object Oriented Programming.
 
