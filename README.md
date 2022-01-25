@@ -10,6 +10,4 @@ A main point of using these classes is to make a 2d video game, reminiscient of 
 
 ### I wrote the soundplayers and imagefunctions because pygame and playsound modules were not truely cross-platform and did not work correctly when going from Windows to Linux.  These sound players and image manipulation functions may not be as robust.  However, at least they work.
 
-The classes will use basic common libraries like tkinter, playsound, pygame for sound.
-
 contact info: garydavenport73@gmail.com
